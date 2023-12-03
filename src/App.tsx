@@ -4,6 +4,9 @@ import StudentForm from './components/studentForm'
 
 function App() {
 
+  // const [data,setData] = useState();
+
+
   return (
     <>
       <StudentForm/>

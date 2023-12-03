@@ -3,15 +3,32 @@ import axios from 'axios'
 
 
 type course = {
+    courseid: number,
     code: string,
     title: string,
     crhr: number,
     semester: number
 }
 
-export default function RegisteredCourses() {
+type registered = {
+    courseid: number,
+    regno: string,
+    gradeid: number
+}
+
+type Props = {
+    regno: string
+}
+
+
+
+
+export default function RegisteredCourses({ regno }: Props) {
     const [semesters, setSemesters] = useState([]);
     const [courses, setCourses] = useState([]);
+    const [selected, setSelected] = useState<string[]>([]);
+    const [registered, setRegistered] = useState<registered[]>([]);
+    const [flag, setFlag] = useState(false);
 
 
     useEffect(() => {
@@ -20,10 +37,42 @@ export default function RegisteredCourses() {
             .catch((err) => console.log(err))
     }, [])
 
+    useEffect(() => {
+        axios.get(`/api/registration/${regno}`)
+            .then((res) => setRegistered(res.data))
+            .catch((err) => console.log(err))
+    }, [flag])
+
     let handleSelect = (e: ChangeEvent<HTMLSelectElement>) => {
         axios.get(`/api/courses/semester/${e.target.value}`)
             .then((res) => setCourses(res.data))
             .catch((err) => console.log(err))
+    }
+
+    let handleCheckbox = (e: ChangeEvent<HTMLInputElement>) => {
+        const { value, checked } = e.target;
+
+        if (checked) {
+            setSelected([...selected, value]);
+        } else {
+            setSelected(selected.filter((x) => x != value))
+        }
+    }
+
+    let handleRegister = () => {
+        axios.post("/api/registration/register", { ids: selected, regno: regno })
+            .then((res) => setFlag(!flag))
+            .catch((err) => console.log(err))
+    }
+
+
+    let checkbox = (id: number) => {
+        const check = registered.filter((x: registered) => x.courseid === id);
+        if (check.length === 0) {
+            return (<input type="checkbox" value={id} onChange={handleCheckbox} />)
+        } else {
+            return ("")
+        }
     }
 
 
@@ -38,7 +87,7 @@ export default function RegisteredCourses() {
                 })}
             </select>
 
-            <table style={{marginTop:'10px'}}>
+            <table style={{ marginTop: '10px' }}>
                 <thead>
                     <tr>
                         <th></th>
@@ -49,10 +98,11 @@ export default function RegisteredCourses() {
                     </tr>
                 </thead>
                 <tbody>
-                    {courses?.map((x:course)=>{
-                        return(
+                    {courses?.map((x: course) => {
+                        return (
                             <tr key={x.code}>
-                                <td></td>
+                                <td>{checkbox(x.courseid)}</td>
+                                {/* <td><input type="checkbox" value={x.courseid} onChange={handleCheckbox} /></td> */}
                                 <td>{x.code}</td>
                                 <td>{x.title}</td>
                                 <td>{x.crhr}</td>
@@ -62,7 +112,8 @@ export default function RegisteredCourses() {
                     })}
                 </tbody>
             </table>
-            {/* {semesters && <pre>{JSON.stringify(semesters,null,4)}</pre>} */}
+            <button onClick={handleRegister}>Register</button>
+            <pre>{JSON.stringify(registered, null, 4)}</pre>
         </div>
     )
 }

@@ -34,7 +34,7 @@ export default function StudentForm() {
             {student && <div>
                 <h5>Student name : {student.studentname}</h5>
                 <h5>Father name : {student.fathername}</h5>
-                <RegisteredCourses/>
+                <RegisteredCourses regno={regno}/>
             </div>}
         </div>
     )
